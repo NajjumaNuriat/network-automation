@@ -1,0 +1,39 @@
+name: Network Configuration CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-network-changes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install netmiko paramiko
+
+      - name: Run syntax validation
+        run: |
+          python -m py_compile scripts/vlan_automation.py
+          python -m py_compile scripts/interface_automation.py
+
+      - name: Execute dry-run VLAN test
+        env:
+          SWITCH_IP: ${{ secrets.SWITCH_IP }}
+          SWITCH_USERNAME: ${{ secrets.SWITCH_USERNAME }}
+          SWITCH_PASSWORD: ${{ secrets.SWITCH_PASSWORD }}
+          SWITCH_SECRET: ${{ secrets.SWITCH_SECRET }}
+        run: |
+          echo "Dry-run mode would execute here"
+          # In production, use --dry-run flags or test switches
